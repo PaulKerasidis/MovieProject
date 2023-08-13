@@ -3,6 +3,7 @@ package com.example.movieproject
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -60,12 +61,13 @@ fun Genres() {
        LazyRow(
         modifier = Modifier.
            padding(start = 16.dp),
+           horizontalArrangement = Arrangement.spacedBy(10.dp)
+
 
        ){
         items(genres){
             Box(
                 modifier = Modifier
-                    .padding(end = 10.dp)
                     .width(75.dp)
                     .height(30.dp)
                     .border(width = 1.dp, color = Color(0x29FFFFFF), shape = RoundedCornerShape(size = 28.dp))
