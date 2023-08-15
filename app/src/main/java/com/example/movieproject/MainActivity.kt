@@ -5,45 +5,61 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.movieproject.ui.theme.MovieProjectTheme
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MovieProjectTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = Color(39,51,67)
-                ) {
+                val systemUiController = rememberSystemUiController()
 
-                    MovieApp()
-
+                SideEffect {
+                    systemUiController.setSystemBarsColor(
+                        color = Color(39, 51, 67)
+                    )
                 }
+                MovieApp()
+
+
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieApp() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
+    Scaffold(
+        containerColor = Color(39, 51, 67),
+        bottomBar = { BottomBar() }
     ) {
 
-        TopAppBar()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+        ) {
 
-        ImageSlider()
+            TopBar()
 
-        Genres()
+            ImageSlider()
 
+            Genres()
+
+            NewReleases()
+
+        }
     }
 }
 
@@ -52,7 +68,7 @@ fun MovieApp() {
 fun AppPreview() {
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(39,51,67)
+        color = Color(39, 51, 67)
     ) {
 
         MovieApp()
