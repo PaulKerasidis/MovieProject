@@ -7,6 +7,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,7 +29,9 @@ fun ImageSlider() {
     val images = listOf(
         R.drawable.image1,
         R.drawable.image2,
-        R.drawable.image3
+        R.drawable.image3,
+        R.drawable.image2,
+        R.drawable.image1
 
     )
 
@@ -36,17 +40,18 @@ fun ImageSlider() {
 
 
     HorizontalPager(
-        pageCount = 3,
+        pageCount = images.size,
         state = pagerState,
         contentPadding = PaddingValues(horizontal = 30.dp),
         modifier = Modifier
             .padding(top = 24.dp, bottom = 22.dp)
-            .height(196.dp),
+            .wrapContentSize(),
+        pageSpacing = -27.5.dp
 
         ) { index ->
             val pageOffset = (pagerState.currentPage - index) + pagerState.currentPageOffsetFraction
             val imageSize by animateFloatAsState(
-                targetValue = if(pageOffset != 0.0f) 0.9f else 1f
+                targetValue = if(pageOffset != 0.0f) 0.75f else 1f
             )
         Log.d("TAG", "${pageOffset} ${imageSize}")
         Log.i("TAG", "${pagerState.currentPageOffsetFraction}")
@@ -56,11 +61,8 @@ fun ImageSlider() {
                 contentDescription = null,
                 contentScale = ContentScale.FillBounds,
                 modifier = Modifier
-                    .padding(
-                        start =
-                    if(pagerState.currentPageOffsetFraction != 0.0f) 7.5.dp else 0.dp,
-                        end = if(pagerState.currentPageOffsetFraction != 0.0f) 7.5.dp else 0.dp
-                    )
+                    .width(350.dp)
+                    .height(196.dp)
                     .graphicsLayer {
                         scaleX = imageSize
                         scaleY = imageSize

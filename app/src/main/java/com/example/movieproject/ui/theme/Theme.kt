@@ -50,7 +50,7 @@ fun MovieProjectTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> DarkColorScheme
+        true-> DarkColorScheme
         else -> LightColorScheme
     }
     val view = LocalView.current
