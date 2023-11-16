@@ -1,5 +1,6 @@
 package com.example.movieproject.di
 
+import com.example.movieproject.data.domain.MovieRepositoryImp
 import com.example.movieproject.data.network.api.MovieApi
 import com.example.movieproject.data.repository.MovieRepository
 import com.example.movieproject.utils.Constants.BASE_URL
@@ -21,7 +22,7 @@ object AppModule {
     @Provides
     fun provideMovieRepository(
         api: MovieApi
-    ) = MovieRepository(api)
+    ):MovieRepository = MovieRepositoryImp(api)
 
     @Singleton
     @Provides

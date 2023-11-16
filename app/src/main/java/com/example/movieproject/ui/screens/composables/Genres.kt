@@ -1,4 +1,4 @@
-package com.example.movieproject.ui.composables
+package com.example.movieproject.ui.screens.composables
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

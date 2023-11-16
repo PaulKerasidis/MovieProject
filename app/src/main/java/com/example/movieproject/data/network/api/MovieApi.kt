@@ -12,11 +12,12 @@ interface MovieApi {
 
     @GET("movie/popular")
     suspend fun getPopularMovies(
+        @Query("page")page : Int ,
         @Query("api_key")apiKey : String = API_KEY
     ): PopularMovies
 
 
-    @GET("/movie/{movie_id}")
+    @GET("movie/{movie_id}")
     suspend fun getMovieDetails(
         @Path("movie_id")movieId: Int,
         @Query("api_key")apiKey : String = API_KEY
@@ -25,7 +26,8 @@ interface MovieApi {
     @GET("trending/movie/{time_window}")
     suspend fun getTrendingMovies(
         @Path("time_window")timeWindow: String = "week",
-        @Query("api_key")apiKey : String = API_KEY
+        @Query("api_key")apiKey : String = API_KEY,
+        @Query("page")page: Int
     ):TrendingMoviesList
 
 

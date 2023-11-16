@@ -14,12 +14,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.movieproject.ui.composables.BottomBar
-import com.example.movieproject.ui.composables.Genres
-import com.example.movieproject.ui.composables.ImageSlider
+import com.example.movieproject.ui.screens.composables.BottomBar
+import com.example.movieproject.ui.screens.composables.Genres
+import com.example.movieproject.ui.screens.composables.ImageSlider
 import com.example.movieproject.ui.theme.MovieProjectTheme
-import com.example.movieproject.ui.composables.NewReleases
-import com.example.movieproject.ui.composables.TopBar
+import com.example.movieproject.ui.screens.composables.NewReleases
+import com.example.movieproject.ui.screens.composables.TopBar
+import com.example.movieproject.ui.screens.navigation.MovieApp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -44,37 +45,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MovieApp() {
 
-    val brush = Brush.verticalGradient(
-        colors = listOf(Color(0xFF273343), Color(0xFF161E29)),
-    )
-
-    Scaffold(
-
-        bottomBar = { BottomBar() }
-
-    ) {it
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(brush)
-
-        ) {
-
-            TopBar()
-
-            ImageSlider()
-
-            Genres()
-
-            NewReleases()
-
-        }
-    }
-}
 
 
 

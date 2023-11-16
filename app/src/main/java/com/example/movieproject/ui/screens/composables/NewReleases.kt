@@ -1,5 +1,7 @@
-package com.example.movieproject.ui.composables
+package com.example.movieproject.ui.screens.composables
 
+import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -17,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,21 +30,27 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.movieproject.R
 import com.example.movieproject.movielist.MovieListViewModel
+import com.example.movieproject.ui.screens.navigation.MovieAppScreen
 import com.example.movieproject.utils.Constants.POSTER_BASE_URL
+import kotlinx.coroutines.launch
 
 @Composable
-fun NewReleases(viewModel: MovieListViewModel = hiltViewModel()) {
+fun NewReleases(
+    navController: NavController,
+    movieListViewModel: MovieListViewModel
+)
+{
+
 
     val popularMovies by remember {
-        mutableStateOf(viewModel.popularMovies)
+        mutableStateOf(movieListViewModel.popularMovies)
     }
 
     Row(
@@ -65,9 +72,10 @@ fun NewReleases(viewModel: MovieListViewModel = hiltViewModel()) {
             ),
             modifier = Modifier
                 .padding(start = 16.dp)
+
         )
         Text(
-            text = "View All",
+            text = "Show moe",
             style = TextStyle(
                 fontSize = 12.sp,
                 fontFamily = FontFamily(Font(R.font.poppinsregular)),
@@ -78,6 +86,7 @@ fun NewReleases(viewModel: MovieListViewModel = hiltViewModel()) {
             ),
             modifier = Modifier
                 .padding(end = 16.dp)
+                .clickable { if (popularMovies.value.size - 1 <50) movieListViewModel.loadPopularMovies() else null }
         )
     }
 
@@ -86,21 +95,25 @@ fun NewReleases(viewModel: MovieListViewModel = hiltViewModel()) {
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(popularMovies.value)
-        { Movie ->
+        { movie ->
             Card(
                 modifier = Modifier
                     .width(200.dp)
                     .height(278.dp)
                     .clip(RoundedCornerShape(10.dp))
+                    .clickable {
+                        navController.navigate(MovieAppScreen.DetailScreen.route)
+                        movieListViewModel.loadMovieDetails(movie.id!!)
+                    }
 
             ) {
                 Box(modifier = Modifier.fillMaxSize())
                 {
 
-                    AsyncImage(
+                     AsyncImage(
                         modifier = Modifier.fillMaxSize(),
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(POSTER_BASE_URL + Movie.posterPath)
+                            .data(POSTER_BASE_URL + movie.posterPath)
                             .crossfade(true)
                             .build(),
                         contentDescription = null,
