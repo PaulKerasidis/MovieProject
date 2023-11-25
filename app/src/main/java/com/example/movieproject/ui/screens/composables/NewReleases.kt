@@ -75,7 +75,7 @@ fun NewReleases(
 
         )
         Text(
-            text = "Show moe",
+            text = "Show more",
             style = TextStyle(
                 fontSize = 12.sp,
                 fontFamily = FontFamily(Font(R.font.poppinsregular)),
@@ -104,6 +104,8 @@ fun NewReleases(
                     .clickable {
                         navController.navigate(MovieAppScreen.DetailScreen.route)
                         movieListViewModel.loadMovieDetails(movie.id!!)
+                        movieListViewModel.loadMovieCast(movie.id!!)
+
                     }
 
             ) {

@@ -16,13 +16,19 @@ import com.example.movieproject.ui.screens.composables.Genres
 import com.example.movieproject.ui.screens.composables.ImageSlider
 import com.example.movieproject.ui.screens.composables.NewReleases
 import com.example.movieproject.ui.screens.composables.TopBar
+import com.google.accompanist.systemuicontroller.SystemUiController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavController,
     movieListViewModel: MovieListViewModel,
+    systemUiController: SystemUiController
 ) {
+    systemUiController.isSystemBarsVisible =true
+    systemUiController.setSystemBarsColor(
+        color = Color(39, 51, 67)
+    )
 
     val brush = Brush.verticalGradient(
         colors = listOf(Color(0xFF273343), Color(0xFF161E29)),

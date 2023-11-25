@@ -11,6 +11,7 @@ import com.example.movieproject.movielist.MovieListViewModel
 import com.example.movieproject.ui.screens.DetailScreen
 
 import com.example.movieproject.ui.screens.HomeScreen
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 
 @Composable
@@ -18,19 +19,25 @@ fun MovieApp() {
 
     val navController = rememberNavController()
     val movieListViewModel: MovieListViewModel = viewModel()
+    val systemUiController = rememberSystemUiController()
 
     NavHost(
         navController = navController,
         startDestination = MovieAppScreen.HomeScreen.route
     ) {
         composable(route = MovieAppScreen.HomeScreen.route) {
-            HomeScreen(navController = navController, movieListViewModel = movieListViewModel)
+            HomeScreen(
+                navController = navController,
+                movieListViewModel = movieListViewModel,
+                systemUiController = systemUiController
+                )
         }
         composable(route = MovieAppScreen.DetailScreen.route)
         {
             DetailScreen(
                 navController = navController,
-                movieListViewModel = movieListViewModel
+                movieListViewModel = movieListViewModel,
+                systemUiController = systemUiController
             )
         }
     }

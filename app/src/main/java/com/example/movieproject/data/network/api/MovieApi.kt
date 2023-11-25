@@ -3,6 +3,7 @@ package com.example.movieproject.data.network.api
 import com.example.movieproject.data.network.response.MovieDetails
 import com.example.movieproject.data.network.response.PopularMovies
 import com.example.movieproject.data.network.response.TrendingMoviesList
+import com.example.movieproject.data.network.response.cast.CastList
 import com.example.movieproject.utils.Constants.API_KEY
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -29,6 +30,12 @@ interface MovieApi {
         @Query("api_key")apiKey : String = API_KEY,
         @Query("page")page: Int
     ):TrendingMoviesList
+
+    @GET("movie/{movie_id}/credits")
+    suspend fun getMovieCast(
+        @Path("movie_id")movieId: Int,
+        @Query("api_key")apiKey: String = API_KEY
+    ):CastList
 
 
 }

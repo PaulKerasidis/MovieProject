@@ -4,6 +4,7 @@ import com.example.movieproject.data.network.api.MovieApi
 import com.example.movieproject.data.network.response.MovieDetails
 import com.example.movieproject.data.network.response.PopularMovies
 import com.example.movieproject.data.network.response.TrendingMoviesList
+import com.example.movieproject.data.network.response.cast.CastList
 import com.example.movieproject.data.repository.MovieRepository
 import com.example.movieproject.utils.Resource
 import dagger.hilt.android.scopes.ActivityScoped
@@ -34,6 +35,15 @@ class MovieRepositoryImp @Inject constructor(
     override suspend fun getTrendingMovies(page: Int): Resource<TrendingMoviesList> {
         var response = try{
             api.getTrendingMovies(page = page)
+        }catch (e:Exception){
+            return Resource.Error("An unknown error occurred")
+        }
+        return Resource.Success(response)
+    }
+
+    override suspend fun getMovieCast(movieId: Int): Resource<CastList> {
+        var response = try{
+            api.getMovieCast(movieId)
         }catch (e:Exception){
             return Resource.Error("An unknown error occurred")
         }

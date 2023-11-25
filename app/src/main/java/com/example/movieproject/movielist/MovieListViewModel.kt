@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.movieproject.data.network.response.MovieDetails
 import com.example.movieproject.data.network.response.Movies
 import com.example.movieproject.data.network.response.TrendingMovie
+import com.example.movieproject.data.network.response.cast.Cast
 import com.example.movieproject.data.repository.MovieRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -31,6 +32,9 @@ class MovieListViewModel @Inject constructor(
     private val _movieDetails = mutableStateOf<MovieDetails>(MovieDetails(null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null))
     val movieDetails: State<MovieDetails> = _movieDetails
 
+    private val _movieCast = mutableStateOf<List<Cast?>>(listOf())
+    val movieCast : State<List<Cast?>> = _movieCast
+
     private var pagePopularMovies : Int = 0
     private var pageTrendingMovies : Int = 0
 
@@ -39,6 +43,15 @@ class MovieListViewModel @Inject constructor(
         loadTrendingMovies()
     }
 
+
+    fun loadMovieCast(movieId: Int){
+        viewModelScope.launch{
+            val response = repository.getMovieCast(movieId).data?.cast
+            if (response != null) {
+                _movieCast.value = response
+            }
+        }
+    }
 
     fun loadPopularMovies(){
         viewModelScope.launch{
