@@ -1,6 +1,6 @@
 
 
-package com.example.movieproject.ui.screens
+package com.example.movieproject.presentation.ui.screens
 
 import androidx.compose.runtime.Composable
 

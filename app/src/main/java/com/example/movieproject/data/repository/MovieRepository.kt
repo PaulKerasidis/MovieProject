@@ -5,6 +5,7 @@ import com.example.movieproject.data.network.response.PopularMovies
 import com.example.movieproject.data.network.response.TrendingMoviesList
 import com.example.movieproject.data.network.response.cast.CastList
 import com.example.movieproject.utils.Resource
+import kotlinx.coroutines.flow.Flow
 
 interface MovieRepository {
     suspend fun getPopularMovies(page: Int): Resource<PopularMovies>

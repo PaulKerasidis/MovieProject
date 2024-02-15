@@ -1,4 +1,4 @@
-package com.example.movieproject.ui.screens
+package com.example.movieproject.presentation.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -11,11 +11,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
 import com.example.movieproject.movielist.MovieListViewModel
-import com.example.movieproject.ui.screens.composables.BottomBar
-import com.example.movieproject.ui.screens.composables.Genres
-import com.example.movieproject.ui.screens.composables.ImageSlider
-import com.example.movieproject.ui.screens.composables.NewReleases
-import com.example.movieproject.ui.screens.composables.TopBar
+import com.example.movieproject.presentation.ui.composables.BottomBar
+import com.example.movieproject.presentation.ui.composables.Genres
+import com.example.movieproject.presentation.ui.composables.ImageSlider
+import com.example.movieproject.presentation.ui.composables.NewReleases
+import com.example.movieproject.presentation.ui.composables.TopBar
 import com.google.accompanist.systemuicontroller.SystemUiController
 
 @OptIn(ExperimentalMaterial3Api::class)

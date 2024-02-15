@@ -1,6 +1,5 @@
-package com.example.movieproject.ui.screens
+package com.example.movieproject.presentation.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,18 +15,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,13 +36,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.movieproject.R
+import com.example.movieproject.data.usecase.DateFormatUseCase
+import com.example.movieproject.data.usecase.RoundToDecimalUseCase
 import com.example.movieproject.movielist.MovieListViewModel
-import com.example.movieproject.ui.screens.composables.RatingBar
-import com.example.movieproject.ui.screens.navigation.MovieAppScreen
+import com.example.movieproject.presentation.ui.composables.RatingBar
 import com.example.movieproject.utils.Constants
 import com.example.movieproject.utils.Constants.POSTER_BASE_ORG_URL
 import com.google.accompanist.systemuicontroller.SystemUiController
@@ -72,9 +68,9 @@ fun DetailScreen(
         ),
     )
 
-    val movieDetail by remember {
-        mutableStateOf(movieListViewModel.movieDetails)
-    }
+    val movieDetail by movieListViewModel.movieDetails.collectAsStateWithLifecycle()
+
+    val movieCast by movieListViewModel.movieCast.collectAsStateWithLifecycle()
 
 
     Column(
@@ -94,7 +90,7 @@ fun DetailScreen(
             AsyncImage(
                 modifier = Modifier.fillMaxSize(),
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(POSTER_BASE_ORG_URL + movieDetail.value.posterPath)
+                    .data(POSTER_BASE_ORG_URL + movieDetail?.posterPath)
                     .crossfade(true)
                     .build(),
                 contentDescription = null,
@@ -117,9 +113,9 @@ fun DetailScreen(
                        contentDescription = null,
                        tint = Color.White,
                        modifier = Modifier
-                           .padding(start =16.dp)
+                           .padding(start = 16.dp)
                            .clickable {
-                               navController.navigate(MovieAppScreen.HomeScreen.route)
+                               navController.popBackStack()
                            }
                            .padding(6.dp)
                    )
@@ -132,9 +128,9 @@ fun DetailScreen(
                 ) {
 
 
-                    if (movieDetail.value.title != null) {
+                    if (movieDetail?.title != null) {
                         Text(
-                            text = movieDetail.value.title!!,
+                            text = movieDetail?.title!!,
                             style = TextStyle(
                                 fontSize = 40.sp,
                                 fontFamily = FontFamily(Font(R.font.poppinsbold)),
@@ -162,35 +158,35 @@ fun DetailScreen(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (movieDetail.value.voteAverage != null) {
-                    val rating = roundToDecimal(movieDetail.value.voteAverage!! / 2)
+                if (movieDetail?.voteAverage != null) {
+                    val rating = RoundToDecimalUseCase(movieDetail?.voteAverage!! / 2).invoke()
                     RatingBar(rating = (rating))
 
                     Text(
                         modifier = Modifier.padding(top = 16.dp, bottom = 16.dp),
-                        text = "  ${rating}/5  (${movieDetail.value.voteCount})",
+                        text = "  ${rating}/5  (${movieDetail?.voteCount})",
                         color = Color.White
                     )
                 }
             }
-            if (movieDetail.value.genres != null) {
-                if (movieDetail.value.genres!![1] != null) {
+            if (movieDetail?.genres != null) {
+                if (movieDetail?.genres!!.size > 1) {
                     Text(
-                        text = "${movieDetail.value.genres!![0]?.name ?: " "}, ${movieDetail.value.genres!![1]?.name ?: " "}" +
+                        text = "${movieDetail?.genres!![0]?.name ?: " "}, ${movieDetail?.genres!![1]?.name ?: " "}" +
                                 " | ${
-                                    if (movieDetail.value.originalLanguage == "en") "English" else movieDetail.value.spokenLanguages?.get(
+                                    if (movieDetail?.originalLanguage == "en") "English" else movieDetail?.spokenLanguages?.get(
                                         0
                                     )!!.englishName
                                 }" +
-                                " | ${movieDetail.value.runtime?.div(60)}h ${
-                                    movieDetail.value.runtime?.rem(
+                                " | ${movieDetail?.runtime?.div(60)}h ${
+                                    movieDetail?.runtime?.rem(
                                         60
                                     )
                                 }min" +
                                 " | ${
-                                    if (movieDetail.value.releaseDate != null) dateFormat(
-                                        movieDetail.value.releaseDate!!
-                                    ) else " "
+                                    if (movieDetail?.releaseDate != null) DateFormatUseCase(
+                                        movieDetail?.releaseDate!!
+                                    ).invoke() else " "
                                 }",
                         color = Color.White
                     )
@@ -198,23 +194,23 @@ fun DetailScreen(
                         text = "",
                         color = Color.White
                     )
-                } else if (movieDetail.value.genres!![0] != null) {
+                } else if (movieDetail?.genres!![0] != null) {
                     Text(
-                        text = "${movieDetail.value.genres!![0]?.name ?: " "}" +
+                        text = (movieDetail?.genres!![0]?.name ?: " ") +
                                 " | ${
-                                    if (movieDetail.value.originalLanguage == "en") "English" else movieDetail.value.spokenLanguages?.get(
+                                    if (movieDetail?.originalLanguage == "en") "English" else movieDetail?.spokenLanguages?.get(
                                         0
                                     )!!.englishName
                                 }" +
-                                " | ${movieDetail.value.runtime?.div(60)}h ${
-                                    movieDetail.value.runtime?.rem(
+                                " | ${movieDetail?.runtime?.div(60)}h ${
+                                    movieDetail?.runtime?.rem(
                                         60
                                     )
                                 }min" +
                                 " | ${
-                                    if (movieDetail.value.releaseDate != null) dateFormat(
-                                        movieDetail.value.releaseDate!!
-                                    ) else " "
+                                    if (movieDetail?.releaseDate != null) DateFormatUseCase(
+                                        movieDetail?.releaseDate!!
+                                    ).invoke() else " "
                                 }",
                         color = Color.White
                     )
@@ -240,7 +236,7 @@ fun DetailScreen(
             }
                 Text(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    text = movieDetail.value.overview?: "",
+                    text = movieDetail?.overview?: "",
                     color = Color(0x99FFFFFF),
                     maxLines = 5
                 )
@@ -249,7 +245,7 @@ fun DetailScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             )
             {
-               items(movieListViewModel.movieCast.value){cast->
+               items(movieCast){cast->
                    Box(
                        modifier = Modifier
                            .width(100.dp)
@@ -261,7 +257,7 @@ fun DetailScreen(
                            AsyncImage(
                                modifier = Modifier.fillMaxSize(),
                                model = ImageRequest.Builder(LocalContext.current)
-                                   .data(Constants.POSTER_BASE_URL + cast!!.profilePath)
+                                   .data(Constants.POSTER_BASE_URL + cast.profilePath)
                                    .crossfade(true)
                                    .build(),
                                contentDescription = null,
@@ -269,8 +265,9 @@ fun DetailScreen(
                            )
                        }else {
                                Text(
-                                   text = "No Image",
-                                   textAlign = TextAlign.End,
+                                   text = if (cast?.name != null){cast.name} else "No Image",
+                                   textAlign = TextAlign.Center,
+                                   maxLines = 2,
                                    color = Color(0x99FFFFFF)
                                )
                        }
@@ -278,38 +275,6 @@ fun DetailScreen(
                }
             }
         }
-    }
-}
-
-fun roundToDecimal(doubleValue: Double, decimalPlaces: Int = 1): Double {
-    val multiplier = Math.pow(10.0, decimalPlaces.toDouble())
-    val roundedValue = Math.round(doubleValue * multiplier) / multiplier
-    return roundedValue
-}
-
-fun dateFormat(date: String): String {
-    val day = date.substring(8, 10)
-    val month = month(date.substring(5, 7))
-    val year = date.substring(0, 4)
-    return "$day ${month} $year"
-
-}
-
-fun month(month: String): String {
-    return when (month) {
-        "01" -> "Jan"
-        "02" -> "Feb"
-        "03" -> "Mar"
-        "04" -> "Apr"
-        "05" -> "May"
-        "06" -> "Jun"
-        "07" -> "Jul"
-        "08" -> "Aug"
-        "09" -> "Sep"
-        "10" -> "Oct"
-        "11" -> "Nov"
-        else -> "Dec"
-
     }
 }
 

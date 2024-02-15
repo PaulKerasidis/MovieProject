@@ -12,7 +12,6 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
-import retrofit2.create
 import javax.inject.Singleton
 
 @Module
@@ -20,9 +19,7 @@ import javax.inject.Singleton
 object AppModule {
     @Singleton
     @Provides
-    fun provideMovieRepository(
-        api: MovieApi
-    ):MovieRepository = MovieRepositoryImp(api)
+    fun provideMovieRepository(api: MovieApi):MovieRepository = MovieRepositoryImp(api)
 
     @Singleton
     @Provides

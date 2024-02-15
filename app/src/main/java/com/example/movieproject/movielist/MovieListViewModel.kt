@@ -1,18 +1,21 @@
 package com.example.movieproject.movielist
 
-import android.util.Log
-import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.movieproject.data.network.response.MovieDetails
 import com.example.movieproject.data.network.response.Movies
+import com.example.movieproject.data.network.response.PopularMovies
 import com.example.movieproject.data.network.response.TrendingMovie
 import com.example.movieproject.data.network.response.cast.Cast
 import com.example.movieproject.data.repository.MovieRepository
+import com.example.movieproject.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,19 +24,18 @@ class MovieListViewModel @Inject constructor(
     private val repository: MovieRepository
 )  : ViewModel()  {
 
-    private val _popularMovies = mutableStateOf<List<Movies>>(listOf())
-    val popularMovies : State<List<Movies>> = _popularMovies
+    private val _popularMovies  = MutableStateFlow(emptyList<Movies>())
+    val popularMovies : StateFlow<List<Movies>> = _popularMovies.asStateFlow()
 
-    var loadError = mutableStateOf("")
 
-    private val _trendingMovies = mutableStateOf<List<TrendingMovie>>(listOf())
-    val trendingMovies : State<List<TrendingMovie>> = _trendingMovies
+    private val _trendingMovies = MutableStateFlow(emptyList<TrendingMovie>())
+    val trendingMovies : StateFlow<List<TrendingMovie>> = _trendingMovies.asStateFlow()
 
-    private val _movieDetails = mutableStateOf<MovieDetails>(MovieDetails(null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null))
-    val movieDetails: State<MovieDetails> = _movieDetails
+    private val _movieDetails : MutableStateFlow<MovieDetails?> = MutableStateFlow(null)
+    val movieDetails: StateFlow<MovieDetails?> = _movieDetails.asStateFlow()
 
-    private val _movieCast = mutableStateOf<List<Cast?>>(listOf())
-    val movieCast : State<List<Cast?>> = _movieCast
+    private val _movieCast = MutableStateFlow(emptyList<Cast?>())
+    val movieCast : StateFlow<List<Cast?>> = _movieCast.asStateFlow()
 
     private var pagePopularMovies : Int = 0
     private var pageTrendingMovies : Int = 0
@@ -54,11 +56,12 @@ class MovieListViewModel @Inject constructor(
     }
 
     fun loadPopularMovies(){
-        viewModelScope.launch{
+        viewModelScope.launch(){
             pagePopularMovies++
-            val response = repository.getPopularMovies(pagePopularMovies).data?.results
-            if (response != null) {
-                _popularMovies.value = _popularMovies.value + response
+            val response = repository.getPopularMovies(pagePopularMovies)
+            when(response){
+                is Resource.Success -> _popularMovies.value = _popularMovies.value + response.data!!.results!!
+                is Resource.Error -> "No data found"
             }
         }
     }
@@ -84,3 +87,13 @@ class MovieListViewModel @Inject constructor(
 
 }
 
+//fun loadPopularMovies(){
+//    viewModelScope.launch(){
+//        pagePopularMovies++
+//        val response = repository.getPopularMovies(pagePopularMovies).data?.results
+//        if (response != null) {
+//            _popularMovies.value = _popularMovies.value + response
+//        }
+//
+//    }
+//}

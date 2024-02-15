@@ -1,16 +1,14 @@
-package com.example.movieproject.ui.screens.navigation
+package com.example.movieproject.presentation.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.example.movieproject.movielist.MovieListViewModel
-import com.example.movieproject.ui.screens.DetailScreen
-
-import com.example.movieproject.ui.screens.HomeScreen
+import com.example.movieproject.presentation.ui.screens.DetailScreen
+import com.example.movieproject.presentation.ui.screens.HomeScreen
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 
@@ -18,7 +16,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 fun MovieApp() {
 
     val navController = rememberNavController()
-    val movieListViewModel: MovieListViewModel = viewModel()
+    val movieListViewModel: MovieListViewModel = hiltViewModel()
     val systemUiController = rememberSystemUiController()
 
     NavHost(

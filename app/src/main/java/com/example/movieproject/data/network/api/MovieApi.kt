@@ -5,6 +5,7 @@ import com.example.movieproject.data.network.response.PopularMovies
 import com.example.movieproject.data.network.response.TrendingMoviesList
 import com.example.movieproject.data.network.response.cast.CastList
 import com.example.movieproject.utils.Constants.API_KEY
+import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query

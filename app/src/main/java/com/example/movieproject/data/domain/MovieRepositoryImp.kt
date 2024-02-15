@@ -8,24 +8,29 @@ import com.example.movieproject.data.network.response.cast.CastList
 import com.example.movieproject.data.repository.MovieRepository
 import com.example.movieproject.utils.Resource
 import dagger.hilt.android.scopes.ActivityScoped
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 @ActivityScoped
 class MovieRepositoryImp @Inject constructor(
-    private val api: MovieApi
+    private val movieApi: MovieApi
 ):MovieRepository {
 
     override suspend fun getPopularMovies(page: Int): Resource<PopularMovies> {
         var response = try {
-            api.getPopularMovies(page)
+            movieApi.getPopularMovies(page = page)
         }catch (e: Exception){
-            return Resource.Error("An unknown error occurred")
+            return Resource.Error("An API Error occured")
         }
         return Resource.Success(response)
     }
+
     override suspend fun getMovieDetails(movieId: Int): Resource<MovieDetails> {
         var response = try {
-            api.getMovieDetails(movieId)
+            movieApi.getMovieDetails(movieId)
         }catch (e: Exception){
             return Resource.Error("An unknown error occurred")
         }
@@ -34,7 +39,7 @@ class MovieRepositoryImp @Inject constructor(
 
     override suspend fun getTrendingMovies(page: Int): Resource<TrendingMoviesList> {
         var response = try{
-            api.getTrendingMovies(page = page)
+            movieApi.getTrendingMovies(page = page)
         }catch (e:Exception){
             return Resource.Error("An unknown error occurred")
         }
@@ -43,7 +48,7 @@ class MovieRepositoryImp @Inject constructor(
 
     override suspend fun getMovieCast(movieId: Int): Resource<CastList> {
         var response = try{
-            api.getMovieCast(movieId)
+            movieApi.getMovieCast(movieId)
         }catch (e:Exception){
             return Resource.Error("An unknown error occurred")
         }
