@@ -46,15 +46,6 @@ class MovieListViewModel @Inject constructor(
     }
 
 
-    fun loadMovieCast(movieId: Int){
-        viewModelScope.launch{
-            val response = repository.getMovieCast(movieId).data?.cast
-            if (response != null) {
-                _movieCast.value = response
-            }
-        }
-    }
-
     fun loadPopularMovies(){
         viewModelScope.launch(){
             pagePopularMovies++
@@ -81,6 +72,14 @@ class MovieListViewModel @Inject constructor(
             val response = repository.getMovieDetails(movieId).data
             if (response != null) {
                 _movieDetails.value = response
+            }
+        }
+    }
+    fun loadMovieCast(movieId: Int){
+        viewModelScope.launch{
+            val response = repository.getMovieCast(movieId).data?.cast
+            if (response != null) {
+                _movieCast.value = response
             }
         }
     }

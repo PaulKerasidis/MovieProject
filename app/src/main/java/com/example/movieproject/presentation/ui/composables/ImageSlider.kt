@@ -81,8 +81,8 @@ fun ImageSlider(
                 .clip(RoundedCornerShape(10.dp))
                 .clickable {
                     navController.navigate(MovieAppScreen.DetailScreen.route)
-                    movieListViewModel.loadMovieDetails(trendingMovies[index].id!!)
                     movieListViewModel.loadMovieCast(trendingMovies[index].id!!)
+                    movieListViewModel.loadMovieDetails(trendingMovies[index].id!!)
                 }
         )
         {
