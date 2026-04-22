@@ -12,8 +12,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.example.movieproject.movielist.MovieIntent
-import com.example.movieproject.movielist.MovieListViewModel
+import com.example.movieproject.presentation.home.HomeIntent
+import com.example.movieproject.presentation.home.HomeViewModel
 import com.example.movieproject.presentation.ui.composables.BottomBar
 import com.example.movieproject.presentation.ui.composables.Genres
 import com.example.movieproject.presentation.ui.composables.ImageSlider
@@ -25,13 +25,13 @@ import com.google.accompanist.systemuicontroller.SystemUiController
 @Composable
 fun HomeScreen(
     navController: NavController,
-    movieListViewModel: MovieListViewModel,
+    viewModel: HomeViewModel,
     systemUiController: SystemUiController
 ) {
     systemUiController.isSystemBarsVisible = true
     systemUiController.setSystemBarsColor(color = Color(39, 51, 67))
 
-    val state by movieListViewModel.homeState.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     val brush = Brush.verticalGradient(
         colors = listOf(Color(0xFF273343), Color(0xFF161E29)),
@@ -46,24 +46,15 @@ fun HomeScreen(
             TopBar(
                 isSearchActive = state.isSearchActive,
                 searchQuery = state.searchQuery,
-                onSearchToggle = { movieListViewModel.onIntent(MovieIntent.ToggleSearch) },
-                onQueryChange = { movieListViewModel.onIntent(MovieIntent.SearchMovies(it)) }
+                onSearchToggle = { viewModel.onIntent(HomeIntent.ToggleSearch) },
+                onQueryChange = { viewModel.onIntent(HomeIntent.SearchMovies(it)) }
             )
-
-            ImageSlider(
-                movieListViewModel = movieListViewModel,
-                navController = navController
-            )
-
+            ImageSlider(viewModel = viewModel, navController = navController)
             Genres(
                 selectedIndex = state.selectedGenreIndex,
-                onGenreSelected = { movieListViewModel.onIntent(MovieIntent.SelectGenre(it)) }
+                onGenreSelected = { viewModel.onIntent(HomeIntent.SelectGenre(it)) }
             )
-
-            NewReleases(
-                navController = navController,
-                movieListViewModel = movieListViewModel
-            )
+            NewReleases(navController = navController, viewModel = viewModel)
         }
     }
 }

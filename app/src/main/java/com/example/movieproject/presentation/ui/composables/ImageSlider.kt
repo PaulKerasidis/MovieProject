@@ -36,8 +36,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.movieproject.movielist.MovieIntent
-import com.example.movieproject.movielist.MovieListViewModel
+import com.example.movieproject.presentation.home.HomeIntent
+import com.example.movieproject.presentation.home.HomeViewModel
 import com.example.movieproject.presentation.ui.navigation.MovieAppScreen
 import com.example.movieproject.utils.Constants.POSTER_BASE_URL
 import com.example.movieproject.utils.UiState
@@ -45,10 +45,10 @@ import com.example.movieproject.utils.UiState
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ImageSlider(
-    movieListViewModel: MovieListViewModel,
+    viewModel: HomeViewModel,
     navController: NavController,
 ) {
-    val state by movieListViewModel.homeState.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     Box(
         modifier = Modifier
@@ -80,9 +80,7 @@ fun ImageSlider(
                             .graphicsLayer { scaleX = imageSize; scaleY = imageSize }
                             .clip(RoundedCornerShape(10.dp))
                             .clickable {
-                                navController.navigate(MovieAppScreen.DetailScreen.route)
-                                movieListViewModel.onIntent(MovieIntent.LoadMovieDetails(trendingMovies[index].id!!))
-                                movieListViewModel.onIntent(MovieIntent.LoadMovieCast(trendingMovies[index].id!!))
+                                navController.navigate(MovieAppScreen.DetailScreen.createRoute(trendingMovies[index].id!!))
                             }
                     ) {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
@@ -109,7 +107,7 @@ fun ImageSlider(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .clickable { movieListViewModel.onIntent(MovieIntent.LoadMoreTrending) },
+                                        .clickable { viewModel.onIntent(HomeIntent.LoadMoreTrending) },
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(100.dp))

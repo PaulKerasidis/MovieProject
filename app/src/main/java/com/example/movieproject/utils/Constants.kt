@@ -7,4 +7,12 @@ object Constants {
     const val POSTER_BASE_URL = "https://image.tmdb.org/t/p/w500"
     const val POSTER_BASE_ORG_URL = "https://image.tmdb.org/t/p/original"
 
+    val GENRES: List<Pair<String, Int?>> = listOf(
+        "All" to null,
+        "Action" to 28,
+        "Comedy" to 35,
+        "Drama" to 18,
+        "Romance" to 10749,
+        "Sci-Fi" to 878,
+    )
 }

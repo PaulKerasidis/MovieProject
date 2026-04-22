@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,47 +41,46 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.movieproject.R
-import com.example.movieproject.data.usecase.DateFormatUseCase
-import com.example.movieproject.data.usecase.RoundToDecimalUseCase
-import androidx.compose.material3.CircularProgressIndicator
-import com.example.movieproject.movielist.MovieListViewModel
+import com.example.movieproject.domain.usecase.DateFormatUseCase
+import com.example.movieproject.domain.usecase.RoundToDecimalUseCase
+import com.example.movieproject.presentation.detail.DetailIntent
+import com.example.movieproject.presentation.detail.DetailViewModel
 import com.example.movieproject.presentation.ui.composables.RatingBar
 import com.example.movieproject.utils.Constants
 import com.example.movieproject.utils.Constants.POSTER_BASE_ORG_URL
 import com.example.movieproject.utils.UiState
 import com.google.accompanist.systemuicontroller.SystemUiController
 
-
 @Composable
 fun DetailScreen(
     navController: NavController,
-    movieListViewModel: MovieListViewModel,
+    viewModel: DetailViewModel,
     systemUiController: SystemUiController
 ) {
     systemUiController.isSystemBarsVisible = false
 
-    val brush = Brush.verticalGradient(
-        colors = listOf(Color(0xFF273343), Color(0xFF161E29)),
-    )
-    val brush2 = Brush.verticalGradient(
-        colors = listOf(
-            Color(29, 39, 51, 0),
-            Color(32, 40, 53, 255)
-        ),
-    )
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
-    val state by movieListViewModel.detailState.collectAsStateWithLifecycle()
+    val brush = Brush.verticalGradient(colors = listOf(Color(0xFF273343), Color(0xFF161E29)))
+    val brush2 = Brush.verticalGradient(colors = listOf(Color(29, 39, 51, 0), Color(32, 40, 53, 255)))
 
     when (state.movieDetailsState) {
         is UiState.Loading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxSize().background(brush), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = Color(0xFFE82251))
             }
             return
         }
         is UiState.Error -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = (state.movieDetailsState as UiState.Error).message, color = Color.White)
+            Box(modifier = Modifier.fillMaxSize().background(brush), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = (state.movieDetailsState as UiState.Error).message, color = Color.White)
+                    Text(
+                        text = "Retry",
+                        color = Color(0xFFE82251),
+                        modifier = Modifier.padding(top = 8.dp).clickable { viewModel.onIntent(DetailIntent.Retry) }
+                    )
+                }
             }
             return
         }
@@ -88,69 +88,49 @@ fun DetailScreen(
     }
 
     val movieDetail = (state.movieDetailsState as UiState.Success).data
-    val movieCast = when (val castState = state.castState) {
-        is UiState.Success -> castState.data
-        else -> emptyList()
-    }
+    val movieCast = (state.castState as? UiState.Success)?.data ?: emptyList()
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(brush),
+        modifier = Modifier.fillMaxSize().background(brush),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.5f)
-
-        ) {
+        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.5f)) {
             AsyncImage(
                 modifier = Modifier.fillMaxSize(),
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(POSTER_BASE_ORG_URL + movieDetail?.posterPath)
+                    .data(POSTER_BASE_ORG_URL + movieDetail.posterPath)
                     .crossfade(true)
                     .build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop
             )
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(brush2),
+                modifier = Modifier.fillMaxSize().background(brush2),
                 contentAlignment = Alignment.TopStart
             ) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp),
+                    modifier = Modifier.fillMaxWidth().height(120.dp),
                     contentAlignment = Alignment.CenterStart
-                ){
-                   Icon(
-                       Icons.Default.ArrowBackIosNew,
-                       contentDescription = null,
-                       tint = Color.White,
-                       modifier = Modifier
-                           .padding(start = 16.dp)
-                           .clickable {
-                               navController.popBackStack()
-                           }
-                           .padding(6.dp)
-                   )
+                ) {
+                    Icon(
+                        Icons.Default.ArrowBackIosNew,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier
+                            .padding(start = 16.dp)
+                            .clickable { navController.popBackStack() }
+                            .padding(6.dp)
+                    )
                 }
-
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Bottom
                 ) {
-
-
-                    if (movieDetail?.title != null) {
+                    movieDetail.title?.let {
                         Text(
-                            text = movieDetail?.title!!,
+                            text = it,
                             style = TextStyle(
                                 fontSize = 40.sp,
                                 fontFamily = FontFamily(Font(R.font.poppinsbold)),
@@ -161,141 +141,94 @@ fun DetailScreen(
                             maxLines = 1
                         )
                     }
-
                 }
-
             }
         }
-
 
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (movieDetail?.voteAverage != null) {
-                    val rating = RoundToDecimalUseCase(movieDetail?.voteAverage!! / 2).invoke()
-                    RatingBar(rating = (rating))
-
+            movieDetail.voteAverage?.let { avg ->
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val rating = RoundToDecimalUseCase(avg / 2).invoke()
+                    RatingBar(rating = rating)
                     Text(
                         modifier = Modifier.padding(top = 16.dp, bottom = 16.dp),
-                        text = "  ${rating}/5  (${movieDetail?.voteCount})",
+                        text = "  $rating/5  (${movieDetail.voteCount})",
                         color = Color.White
                     )
                 }
             }
-            if (movieDetail?.genres != null) {
-                if (movieDetail?.genres!!.size > 1) {
-                    Text(
-                        text = "${movieDetail?.genres!![0]?.name ?: " "}, ${movieDetail?.genres!![1]?.name ?: " "}" +
-                                " | ${
-                                    if (movieDetail?.originalLanguage == "en") "English" else movieDetail?.spokenLanguages?.get(
-                                        0
-                                    )!!.englishName
-                                }" +
-                                " | ${movieDetail?.runtime?.div(60)}h ${
-                                    movieDetail?.runtime?.rem(
-                                        60
-                                    )
-                                }min" +
-                                " | ${
-                                    if (movieDetail?.releaseDate != null) DateFormatUseCase(
-                                        movieDetail?.releaseDate!!
-                                    ).invoke() else " "
-                                }",
-                        color = Color.White
-                    )
-                    Text(
-                        text = "",
-                        color = Color.White
-                    )
-                } else if (movieDetail?.genres!![0] != null) {
-                    Text(
-                        text = (movieDetail?.genres!![0]?.name ?: " ") +
-                                " | ${
-                                    if (movieDetail?.originalLanguage == "en") "English" else movieDetail?.spokenLanguages?.get(
-                                        0
-                                    )!!.englishName
-                                }" +
-                                " | ${movieDetail?.runtime?.div(60)}h ${
-                                    movieDetail?.runtime?.rem(
-                                        60
-                                    )
-                                }min" +
-                                " | ${
-                                    if (movieDetail?.releaseDate != null) DateFormatUseCase(
-                                        movieDetail?.releaseDate!!
-                                    ).invoke() else " "
-                                }",
-                        color = Color.White
-                    )
-                }
 
+            movieDetail.genres?.let { genres ->
+                val genreText = genres.take(2).mapNotNull { it?.name }.joinToString(", ")
+                val langText = if (movieDetail.originalLanguage == "en") "English"
+                    else movieDetail.spokenLanguages?.firstOrNull()?.englishName ?: ""
+                val runtimeText = movieDetail.runtime?.let { "${it / 60}h ${it % 60}min" } ?: ""
+                val dateText = movieDetail.releaseDate?.let { DateFormatUseCase(it).invoke() } ?: ""
+                Text(
+                    text = listOf(genreText, langText, runtimeText, dateText)
+                        .filter { it.isNotBlank() }
+                        .joinToString(" | "),
+                    color = Color.White
+                )
             }
+
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 10.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 10.dp),
                 horizontalArrangement = Arrangement.Start
-            )
-            {
+            ) {
                 Text(
                     text = "Summary",
                     style = TextStyle(
                         fontSize = 26.sp,
                         fontFamily = FontFamily(Font(R.font.poppinsbold)),
                         color = Color(0xFFF3F3F4),
-
-                        )
+                    )
                 )
             }
-                Text(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    text = movieDetail?.overview?: "",
-                    color = Color(0x99FFFFFF),
-                    maxLines = 5
-                )
+            Text(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                text = movieDetail.overview ?: "",
+                color = Color(0x99FFFFFF),
+                maxLines = 5
+            )
+
             LazyRow(
                 modifier = Modifier.padding(top = 20.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
-            )
-            {
-               items(movieCast){cast->
-                   Box(
-                       modifier = Modifier
-                           .width(100.dp)
-                           .height(100.dp)
-                           .clip(CircleShape),
-                       contentAlignment = Alignment.Center
-                   ){
-                       if (cast?.profilePath != null) {
-                           AsyncImage(
-                               modifier = Modifier.fillMaxSize(),
-                               model = ImageRequest.Builder(LocalContext.current)
-                                   .data(Constants.POSTER_BASE_URL + cast.profilePath)
-                                   .crossfade(true)
-                                   .build(),
-                               contentDescription = null,
-                               contentScale = ContentScale.FillWidth
-                           )
-                       }else {
-                               Text(
-                                   text = if (cast?.name != null){cast.name} else "No Image",
-                                   textAlign = TextAlign.Center,
-                                   maxLines = 2,
-                                   color = Color(0x99FFFFFF)
-                               )
-                       }
-                   }
-               }
+            ) {
+                items(movieCast) { cast ->
+                    Box(
+                        modifier = Modifier.width(100.dp).height(100.dp).clip(CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (cast?.profilePath != null) {
+                            AsyncImage(
+                                modifier = Modifier.fillMaxSize(),
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(Constants.POSTER_BASE_URL + cast.profilePath)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = null,
+                                contentScale = ContentScale.FillWidth
+                            )
+                        } else {
+                            Text(
+                                text = cast?.name ?: "No Image",
+                                textAlign = TextAlign.Center,
+                                maxLines = 2,
+                                color = Color(0x99FFFFFF)
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 }
-
-

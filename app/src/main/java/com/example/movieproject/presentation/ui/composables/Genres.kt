@@ -57,7 +57,7 @@ fun Genres(
             modifier = Modifier.padding(start = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            itemsIndexed(com.example.movieproject.movielist.GENRES) { index, (name, _) ->
+            itemsIndexed(com.example.movieproject.utils.Constants.GENRES) { index, (name, _) ->
                 Box(
                     modifier = Modifier
                         .height(30.dp)
