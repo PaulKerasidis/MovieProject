@@ -53,9 +53,7 @@ fun HomeScreen(
                 onQueryChange = { movieListViewModel.onSearchQueryChanged(it) }
             )
 
-            if (!isSearchActive) {
-                ImageSlider(movieListViewModel = movieListViewModel, navController = navController)
-            }
+            ImageSlider(movieListViewModel = movieListViewModel, navController = navController)
 
             Genres(
                 selectedIndex = selectedGenreIndex,
