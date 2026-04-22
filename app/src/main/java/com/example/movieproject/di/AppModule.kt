@@ -11,7 +11,11 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
+import com.example.movieproject.BuildConfig
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import timber.log.Timber
 import javax.inject.Singleton
 
 @Module
@@ -23,9 +27,21 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideMovieApi(): MovieApi{
+    fun provideMovieApi(): MovieApi {
+        val client = OkHttpClient.Builder()
+            .apply {
+                if (BuildConfig.DEBUG) {
+                    val logging = HttpLoggingInterceptor { Timber.tag("movie").v(it) }
+                    logging.level = HttpLoggingInterceptor.Level.BODY
+                    addInterceptor(logging)
+                }
+            }
+            .build()
+
+        val json = Json { ignoreUnknownKeys = true }
         return Retrofit.Builder()
-            .addConverterFactory(Json.asConverterFactory("application/Jason".toMediaType()))
+            .client(client)
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .baseUrl(BASE_URL)
             .build()
             .create(MovieApi::class.java)

@@ -14,29 +14,40 @@ interface MovieApi {
 
     @GET("movie/popular")
     suspend fun getPopularMovies(
-        @Query("page")page : Int ,
-        @Query("api_key")apiKey : String = API_KEY
+        @Query("page") page: Int,
+        @Query("api_key") apiKey: String = API_KEY
     ): PopularMovies
 
+    @GET("discover/movie")
+    suspend fun discoverMovies(
+        @Query("page") page: Int,
+        @Query("with_genres") genreId: Int,
+        @Query("api_key") apiKey: String = API_KEY
+    ): PopularMovies
+
+    @GET("search/movie")
+    suspend fun searchMovies(
+        @Query("query") query: String,
+        @Query("page") page: Int,
+        @Query("api_key") apiKey: String = API_KEY
+    ): PopularMovies
 
     @GET("movie/{movie_id}")
     suspend fun getMovieDetails(
-        @Path("movie_id")movieId: Int,
-        @Query("api_key")apiKey : String = API_KEY
+        @Path("movie_id") movieId: Int,
+        @Query("api_key") apiKey: String = API_KEY
     ): MovieDetails
 
     @GET("trending/movie/{time_window}")
     suspend fun getTrendingMovies(
-        @Path("time_window")timeWindow: String = "week",
-        @Query("api_key")apiKey : String = API_KEY,
-        @Query("page")page: Int
-    ):TrendingMoviesList
+        @Path("time_window") timeWindow: String = "week",
+        @Query("api_key") apiKey: String = API_KEY,
+        @Query("page") page: Int
+    ): TrendingMoviesList
 
     @GET("movie/{movie_id}/credits")
     suspend fun getMovieCast(
-        @Path("movie_id")movieId: Int,
-        @Query("api_key")apiKey: String = API_KEY
-    ):CastList
-
-
+        @Path("movie_id") movieId: Int,
+        @Query("api_key") apiKey: String = API_KEY
+    ): CastList
 }

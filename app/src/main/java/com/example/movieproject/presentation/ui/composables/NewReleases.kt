@@ -1,7 +1,5 @@
 package com.example.movieproject.presentation.ui.composables
 
-import android.content.ContentValues.TAG
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,13 +10,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,10 +47,19 @@ fun NewReleases(
     navController: NavController,
     movieListViewModel: MovieListViewModel
 ) {
+    val movies by movieListViewModel.movies.collectAsStateWithLifecycle()
+    val listState = rememberLazyListState()
 
+    val nearEnd by remember {
+        derivedStateOf {
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            lastVisible >= movies.size - 4 && movies.isNotEmpty()
+        }
+    }
 
-    val popularMovies by movieListViewModel.popularMovies.collectAsStateWithLifecycle()
-
+    LaunchedEffect(nearEnd) {
+        if (nearEnd) movieListViewModel.loadMoreMovies()
+    }
 
     Row(
         modifier = Modifier
@@ -59,7 +69,6 @@ fun NewReleases(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Text(
             text = "Popular Movies",
             style = TextStyle(
@@ -68,9 +77,7 @@ fun NewReleases(
                 fontWeight = FontWeight(500),
                 color = Color(0xFFF3F3F4),
             ),
-            modifier = Modifier
-                .padding(start = 16.dp)
-
+            modifier = Modifier.padding(start = 16.dp)
         )
         Text(
             text = "Show more",
@@ -84,33 +91,28 @@ fun NewReleases(
             ),
             modifier = Modifier
                 .padding(end = 16.dp)
-                .clickable { if (popularMovies.size - 1 < 70) movieListViewModel.loadPopularMovies() else null }
+                .clickable { movieListViewModel.loadMoreMovies() }
         )
     }
 
-
     LazyRow(
-        modifier = Modifier.padding(start = 16.dp),
+        state = listState,
+        modifier = Modifier.padding(start = 16.dp, top = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(popularMovies)
-        { movie ->
+        itemsIndexed(movies) { _, movie ->
             Card(
                 modifier = Modifier
-                    .width(200.dp)
-                    .height(278.dp)
+                    .width(140.dp)
+                    .height(200.dp)
                     .clip(RoundedCornerShape(10.dp))
                     .clickable {
                         navController.navigate(MovieAppScreen.DetailScreen.route)
                         movieListViewModel.loadMovieDetails(movie.id!!)
                         movieListViewModel.loadMovieCast(movie.id)
-
                     }
-
             ) {
-                Box(modifier = Modifier.fillMaxSize())
-                {
-
+                Box(modifier = Modifier.fillMaxSize()) {
                     AsyncImage(
                         modifier = Modifier.fillMaxSize(),
                         model = ImageRequest.Builder(LocalContext.current)
@@ -124,8 +126,4 @@ fun NewReleases(
             }
         }
     }
-
-
 }
-
-

@@ -31,81 +31,62 @@ import androidx.compose.ui.unit.sp
 import com.example.movieproject.R
 
 @Composable
-fun Genres() {
-
-    var selectedItem by rememberSaveable {
-        mutableStateOf(0)
-    }
-
-    val genres = listOf<String>(
-        "Drama","Action","Romance", "Comedy","Heroes"
-    )
-   Column(
-
-   ) {
-
-
-       Box(
-           modifier = Modifier
-               .padding(start = 16.dp, bottom = 8.dp)
-               .width(68.dp)
-               .height(21.dp),
-           contentAlignment = Alignment.CenterStart
-
-       ) {
-
-           Text(
-               text = "Genres",
-               style = TextStyle(
-                   fontSize = 14.sp,
-                   fontFamily = FontFamily(Font(R.font.poppinsregular)),
-                   fontWeight = FontWeight(500),
-                   color = Color(0xFFF3F3F4),
-               )
-           )
-       }
-       LazyRow(
-        modifier = Modifier.
-           padding(start = 16.dp),
-           horizontalArrangement = Arrangement.spacedBy(10.dp)
-
-
-       ){
-        itemsIndexed(genres){index,it->
-
-            Box(
-                modifier = Modifier
-                    .width(75.dp)
-                    .height(30.dp)
-                    .background(color = if(selectedItem == index) {
-                        Color(0xFFE82251)
-                    }else{
-                        Color.Transparent
-                         }
-                        , shape = RoundedCornerShape(size = 28.dp))
-                    .border(width = if(selectedItem != index) 1.dp else 0.dp
-                        , color = Color(0x29FFFFFF), shape = RoundedCornerShape(size = 28.dp))
-                    .clickable {
-                               selectedItem = index
-                    },
-                contentAlignment = Alignment.Center
-
-
-                ) {
-                Text(
-                    text = it,
-                    style = TextStyle(
-                        fontSize = 12.sp,
-                        fontFamily = FontFamily(Font(R.font.poppinsregular)),
-                        fontWeight = FontWeight(400),
-                        color = if(selectedItem == index) Color(0xFFFFFFFF) else Color(0x66FFFFFF),
-                    ),
+fun Genres(
+    selectedIndex: Int,
+    onGenreSelected: (Int) -> Unit,
+) {
+    Column {
+        Box(
+            modifier = Modifier
+                .padding(start = 16.dp, bottom = 8.dp)
+                .width(68.dp)
+                .height(21.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Text(
+                text = "Genres",
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontFamily = FontFamily(Font(R.font.poppinsregular)),
+                    fontWeight = FontWeight(500),
+                    color = Color(0xFFF3F3F4),
                 )
+            )
+        }
+        LazyRow(
+            modifier = Modifier.padding(start = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            itemsIndexed(com.example.movieproject.movielist.GENRES) { index, (name, _) ->
+                Box(
+                    modifier = Modifier
+                        .height(30.dp)
+                        .background(
+                            color = if (selectedIndex == index) Color(0xFFE82251) else Color.Transparent,
+                            shape = RoundedCornerShape(size = 28.dp)
+                        )
+                        .border(
+                            width = if (selectedIndex != index) 1.dp else 0.dp,
+                            color = Color(0x29FFFFFF),
+                            shape = RoundedCornerShape(size = 28.dp)
+                        )
+                        .clickable { onGenreSelected(index) }
+                        .padding(horizontal = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = name,
+                        style = TextStyle(
+                            fontSize = 12.sp,
+                            fontFamily = FontFamily(Font(R.font.poppinsregular)),
+                            fontWeight = FontWeight(400),
+                            color = if (selectedIndex == index) Color(0xFFFFFFFF) else Color(0x66FFFFFF),
+                        ),
+                    )
+                }
             }
         }
-       }
-   }
-
+    }
 }
 
 @Preview

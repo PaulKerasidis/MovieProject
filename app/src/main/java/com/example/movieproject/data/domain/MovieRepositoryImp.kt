@@ -21,10 +21,28 @@ class MovieRepositoryImp @Inject constructor(
 ):MovieRepository {
 
     override suspend fun getPopularMovies(page: Int): Resource<PopularMovies> {
-        var response = try {
+        val response = try {
             movieApi.getPopularMovies(page = page)
-        }catch (e: Exception){
-            return Resource.Error("An API Error occured")
+        } catch (e: Exception) {
+            return Resource.Error("An API Error occurred")
+        }
+        return Resource.Success(response)
+    }
+
+    override suspend fun discoverMovies(page: Int, genreId: Int): Resource<PopularMovies> {
+        val response = try {
+            movieApi.discoverMovies(page = page, genreId = genreId)
+        } catch (e: Exception) {
+            return Resource.Error("An API Error occurred")
+        }
+        return Resource.Success(response)
+    }
+
+    override suspend fun searchMovies(query: String, page: Int): Resource<PopularMovies> {
+        val response = try {
+            movieApi.searchMovies(query = query, page = page)
+        } catch (e: Exception) {
+            return Resource.Error("An API Error occurred")
         }
         return Resource.Success(response)
     }

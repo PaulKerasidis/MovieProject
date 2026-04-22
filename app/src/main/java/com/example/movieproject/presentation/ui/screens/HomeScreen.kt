@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.movieproject.movielist.MovieListViewModel
 import com.example.movieproject.presentation.ui.composables.BottomBar
@@ -25,36 +27,42 @@ fun HomeScreen(
     movieListViewModel: MovieListViewModel,
     systemUiController: SystemUiController
 ) {
-    systemUiController.isSystemBarsVisible =true
-    systemUiController.setSystemBarsColor(
-        color = Color(39, 51, 67)
-    )
+    systemUiController.isSystemBarsVisible = true
+    systemUiController.setSystemBarsColor(color = Color(39, 51, 67))
+
+    val isSearchActive by movieListViewModel.isSearchActive.collectAsStateWithLifecycle()
+    val searchQuery by movieListViewModel.searchQuery.collectAsStateWithLifecycle()
+    val selectedGenreIndex by movieListViewModel.selectedGenreIndex.collectAsStateWithLifecycle()
 
     val brush = Brush.verticalGradient(
         colors = listOf(Color(0xFF273343), Color(0xFF161E29)),
     )
 
     Scaffold(
-
         bottomBar = { BottomBar() }
-
-    ) {
-        it
+    ) { _ ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(brush)
-
         ) {
+            TopBar(
+                isSearchActive = isSearchActive,
+                searchQuery = searchQuery,
+                onSearchToggle = { movieListViewModel.toggleSearch() },
+                onQueryChange = { movieListViewModel.onSearchQueryChanged(it) }
+            )
 
-            TopBar()
+            if (!isSearchActive) {
+                ImageSlider(movieListViewModel = movieListViewModel, navController = navController)
+            }
 
-            ImageSlider(movieListViewModel = movieListViewModel, navController = navController)
-
-            Genres()
+            Genres(
+                selectedIndex = selectedGenreIndex,
+                onGenreSelected = { movieListViewModel.onGenreSelected(it) }
+            )
 
             NewReleases(navController = navController, movieListViewModel = movieListViewModel)
-
         }
     }
 }
