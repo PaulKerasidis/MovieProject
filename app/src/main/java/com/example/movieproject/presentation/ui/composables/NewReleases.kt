@@ -3,6 +3,7 @@ package com.example.movieproject.presentation.ui.composables
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +15,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,28 +40,19 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.movieproject.R
+import com.example.movieproject.movielist.MovieIntent
 import com.example.movieproject.movielist.MovieListViewModel
 import com.example.movieproject.presentation.ui.navigation.MovieAppScreen
 import com.example.movieproject.utils.Constants.POSTER_BASE_URL
+import com.example.movieproject.utils.UiState
 
 @Composable
 fun NewReleases(
     navController: NavController,
     movieListViewModel: MovieListViewModel
 ) {
-    val movies by movieListViewModel.movies.collectAsStateWithLifecycle()
+    val state by movieListViewModel.homeState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
-
-    val nearEnd by remember {
-        derivedStateOf {
-            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            lastVisible >= movies.size - 4 && movies.isNotEmpty()
-        }
-    }
-
-    LaunchedEffect(nearEnd) {
-        if (nearEnd) movieListViewModel.loadMoreMovies()
-    }
 
     Row(
         modifier = Modifier
@@ -91,37 +84,93 @@ fun NewReleases(
             ),
             modifier = Modifier
                 .padding(end = 16.dp)
-                .clickable { movieListViewModel.loadMoreMovies() }
+                .clickable { movieListViewModel.onIntent(MovieIntent.LoadMoreMovies) }
         )
     }
 
-    LazyRow(
-        state = listState,
-        modifier = Modifier.padding(start = 16.dp, top = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        itemsIndexed(movies) { _, movie ->
-            Card(
+    when (val moviesState = state.moviesState) {
+        is UiState.Loading -> {
+            Box(
                 modifier = Modifier
-                    .width(140.dp)
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .clickable {
-                        navController.navigate(MovieAppScreen.DetailScreen.route)
-                        movieListViewModel.loadMovieDetails(movie.id!!)
-                        movieListViewModel.loadMovieCast(movie.id)
-                    }
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    AsyncImage(
-                        modifier = Modifier.fillMaxSize(),
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(POSTER_BASE_URL + movie.posterPath)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop
+                CircularProgressIndicator(color = Color(0xFFE82251))
+            }
+        }
+        is UiState.Error -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = moviesState.message, color = Color.White)
+                    Text(
+                        text = "Retry",
+                        color = Color(0xFFE82251),
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .clickable { movieListViewModel.onIntent(MovieIntent.LoadMoreMovies) }
                     )
+                }
+            }
+        }
+        is UiState.Success -> {
+            val movies = moviesState.data
+            val nearEnd by remember {
+                derivedStateOf {
+                    val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                    lastVisible >= movies.size - 4 && movies.isNotEmpty()
+                }
+            }
+            LaunchedEffect(nearEnd) {
+                if (nearEnd) movieListViewModel.onIntent(MovieIntent.LoadMoreMovies)
+            }
+
+            LazyRow(
+                state = listState,
+                modifier = Modifier.padding(start = 16.dp, top = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                itemsIndexed(movies) { _, movie ->
+                    Card(
+                        modifier = Modifier
+                            .width(140.dp)
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable {
+                                navController.navigate(MovieAppScreen.DetailScreen.route)
+                                movieListViewModel.onIntent(MovieIntent.LoadMovieDetails(movie.id!!))
+                                movieListViewModel.onIntent(MovieIntent.LoadMovieCast(movie.id))
+                            }
+                    ) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            AsyncImage(
+                                modifier = Modifier.fillMaxSize(),
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(POSTER_BASE_URL + movie.posterPath)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+                }
+                if (state.isPaginating) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .width(60.dp)
+                                .height(200.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFFE82251))
+                        }
+                    }
                 }
             }
         }

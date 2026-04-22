@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,10 +42,12 @@ import coil.request.ImageRequest
 import com.example.movieproject.R
 import com.example.movieproject.data.usecase.DateFormatUseCase
 import com.example.movieproject.data.usecase.RoundToDecimalUseCase
+import androidx.compose.material3.CircularProgressIndicator
 import com.example.movieproject.movielist.MovieListViewModel
 import com.example.movieproject.presentation.ui.composables.RatingBar
 import com.example.movieproject.utils.Constants
 import com.example.movieproject.utils.Constants.POSTER_BASE_ORG_URL
+import com.example.movieproject.utils.UiState
 import com.google.accompanist.systemuicontroller.SystemUiController
 
 
@@ -68,10 +69,29 @@ fun DetailScreen(
         ),
     )
 
-    val movieDetail by movieListViewModel.movieDetails.collectAsStateWithLifecycle()
+    val state by movieListViewModel.detailState.collectAsStateWithLifecycle()
 
-    val movieCast by movieListViewModel.movieCast.collectAsStateWithLifecycle()
+    when (state.movieDetailsState) {
+        is UiState.Loading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = Color(0xFFE82251))
+            }
+            return
+        }
+        is UiState.Error -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(text = (state.movieDetailsState as UiState.Error).message, color = Color.White)
+            }
+            return
+        }
+        is UiState.Success -> Unit
+    }
 
+    val movieDetail = (state.movieDetailsState as UiState.Success).data
+    val movieCast = when (val castState = state.castState) {
+        is UiState.Success -> castState.data
+        else -> emptyList()
+    }
 
     Column(
         modifier = Modifier

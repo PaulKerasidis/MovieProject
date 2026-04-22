@@ -2,18 +2,18 @@ package com.example.movieproject.movielist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.movieproject.data.network.response.MovieDetails
 import com.example.movieproject.data.network.response.Movies
 import com.example.movieproject.data.network.response.TrendingMovie
-import com.example.movieproject.data.network.response.cast.Cast
 import com.example.movieproject.data.repository.MovieRepository
 import com.example.movieproject.utils.Resource
+import com.example.movieproject.utils.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,48 +31,45 @@ class MovieListViewModel @Inject constructor(
     private val repository: MovieRepository
 ) : ViewModel() {
 
-    private val _movies = MutableStateFlow(emptyList<Movies>())
-    val movies: StateFlow<List<Movies>> = _movies.asStateFlow()
+    private val _homeState = MutableStateFlow(HomeUiState())
+    val homeState: StateFlow<HomeUiState> = _homeState.asStateFlow()
 
-    private val _trendingMovies = MutableStateFlow(emptyList<TrendingMovie>())
-    val trendingMovies: StateFlow<List<TrendingMovie>> = _trendingMovies.asStateFlow()
+    private val _detailState = MutableStateFlow(DetailUiState())
+    val detailState: StateFlow<DetailUiState> = _detailState.asStateFlow()
 
-    private val _movieDetails: MutableStateFlow<MovieDetails?> = MutableStateFlow(null)
-    val movieDetails: StateFlow<MovieDetails?> = _movieDetails.asStateFlow()
-
-    private val _movieCast = MutableStateFlow(emptyList<Cast?>())
-    val movieCast: StateFlow<List<Cast?>> = _movieCast.asStateFlow()
-
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
-
-    private val _isSearchActive = MutableStateFlow(false)
-    val isSearchActive: StateFlow<Boolean> = _isSearchActive.asStateFlow()
-
-    private val _selectedGenreIndex = MutableStateFlow(0)
-    val selectedGenreIndex: StateFlow<Int> = _selectedGenreIndex.asStateFlow()
-
+    private var allMovies = emptyList<Movies>()
+    private var allTrending = emptyList<TrendingMovie>()
     private var currentPage = 0
-    private var isLoading = false
-    private var hasMore = true
-    private var searchJob: Job? = null
-
     private var trendingPage = 0
+    private var isLoadingMovies = false
+    private var hasMoreMovies = true
+    private var searchJob: Job? = null
 
     init {
         loadMoreMovies()
-        loadTrendingMovies()
+        loadMoreTrending()
     }
 
-    fun toggleSearch() {
-        _isSearchActive.value = !_isSearchActive.value
-        if (!_isSearchActive.value) {
-            onSearchQueryChanged("")
+    fun onIntent(intent: MovieIntent) {
+        when (intent) {
+            is MovieIntent.LoadMoreMovies -> loadMoreMovies()
+            is MovieIntent.LoadMoreTrending -> loadMoreTrending()
+            is MovieIntent.ToggleSearch -> toggleSearch()
+            is MovieIntent.SearchMovies -> onSearchQueryChanged(intent.query)
+            is MovieIntent.SelectGenre -> onGenreSelected(intent.index)
+            is MovieIntent.LoadMovieDetails -> loadMovieDetails(intent.movieId)
+            is MovieIntent.LoadMovieCast -> loadMovieCast(intent.movieId)
         }
     }
 
-    fun onSearchQueryChanged(query: String) {
-        _searchQuery.value = query
+    private fun toggleSearch() {
+        val isActive = _homeState.value.isSearchActive
+        _homeState.update { it.copy(isSearchActive = !isActive) }
+        if (isActive) onSearchQueryChanged("")
+    }
+
+    private fun onSearchQueryChanged(query: String) {
+        _homeState.update { it.copy(searchQuery = query) }
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             delay(400)
@@ -80,66 +77,88 @@ class MovieListViewModel @Inject constructor(
         }
     }
 
-    fun onGenreSelected(index: Int) {
-        _selectedGenreIndex.value = index
-        _searchQuery.value = ""
-        _isSearchActive.value = false
+    private fun onGenreSelected(index: Int) {
+        _homeState.update { it.copy(selectedGenreIndex = index, searchQuery = "", isSearchActive = false) }
         resetAndLoad()
     }
 
-    fun loadMoreMovies() {
-        if (isLoading || !hasMore) return
-        isLoading = true
+    private fun loadMoreMovies() {
+        if (isLoadingMovies || !hasMoreMovies) return
+        isLoadingMovies = true
+        val isFirstPage = currentPage == 0
+        if (!isFirstPage) _homeState.update { it.copy(isPaginating = true) }
         currentPage++
-        val query = _searchQuery.value
-        val genreId = GENRES[_selectedGenreIndex.value].second
+        val query = _homeState.value.searchQuery
+        val genreId = GENRES[_homeState.value.selectedGenreIndex].second
         viewModelScope.launch {
             val result = when {
                 query.isNotBlank() -> repository.searchMovies(query = query, page = currentPage)
                 genreId != null -> repository.discoverMovies(page = currentPage, genreId = genreId)
                 else -> repository.getPopularMovies(page = currentPage)
             }
-            if (result is Resource.Success) {
-                val newMovies = result.data?.results ?: emptyList()
-                _movies.value = _movies.value + newMovies
-                hasMore = newMovies.isNotEmpty()
+            when (result) {
+                is Resource.Success -> {
+                    val newMovies = result.data?.results ?: emptyList()
+                    allMovies = allMovies + newMovies
+                    hasMoreMovies = newMovies.isNotEmpty()
+                    _homeState.update { it.copy(moviesState = UiState.Success(allMovies), isPaginating = false) }
+                }
+                is Resource.Error -> {
+                    if (isFirstPage) {
+                        _homeState.update { it.copy(moviesState = UiState.Error(result.message ?: "Unknown error"), isPaginating = false) }
+                    } else {
+                        _homeState.update { it.copy(isPaginating = false) }
+                    }
+                }
             }
-            isLoading = false
+            isLoadingMovies = false
         }
     }
 
     private fun resetAndLoad() {
         currentPage = 0
-        hasMore = true
-        isLoading = false
-        _movies.value = emptyList()
+        hasMoreMovies = true
+        isLoadingMovies = false
+        allMovies = emptyList()
+        _homeState.update { it.copy(moviesState = UiState.Loading) }
         loadMoreMovies()
     }
 
-    fun loadTrendingMovies() {
+    private fun loadMoreTrending() {
+        trendingPage++
         viewModelScope.launch {
-            trendingPage++
-            val response = repository.getTrendingMovies(trendingPage).data?.results
-            if (response != null) {
-                _trendingMovies.value = _trendingMovies.value + response
+            val result = repository.getTrendingMovies(trendingPage)
+            when (result) {
+                is Resource.Success -> {
+                    val newTrending = result.data?.results ?: emptyList()
+                    allTrending = allTrending + newTrending
+                    _homeState.update { it.copy(trendingState = UiState.Success(allTrending)) }
+                }
+                is Resource.Error -> {
+                    if (trendingPage == 1) {
+                        _homeState.update { it.copy(trendingState = UiState.Error(result.message ?: "Unknown error")) }
+                    }
+                }
             }
         }
     }
 
-    fun loadMovieCast(movieId: Int) {
+    private fun loadMovieDetails(movieId: Int) {
+        _detailState.update { it.copy(movieDetailsState = UiState.Loading) }
         viewModelScope.launch {
-            val response = repository.getMovieCast(movieId).data?.cast
-            if (response != null) {
-                _movieCast.value = response
+            when (val result = repository.getMovieDetails(movieId)) {
+                is Resource.Success -> _detailState.update { it.copy(movieDetailsState = UiState.Success(result.data!!)) }
+                is Resource.Error -> _detailState.update { it.copy(movieDetailsState = UiState.Error(result.message ?: "Unknown error")) }
             }
         }
     }
 
-    fun loadMovieDetails(movieId: Int) {
+    private fun loadMovieCast(movieId: Int) {
+        _detailState.update { it.copy(castState = UiState.Loading) }
         viewModelScope.launch {
-            val response = repository.getMovieDetails(movieId).data
-            if (response != null) {
-                _movieDetails.value = response
+            when (val result = repository.getMovieCast(movieId)) {
+                is Resource.Success -> _detailState.update { it.copy(castState = UiState.Success(result.data?.cast ?: emptyList())) }
+                is Resource.Error -> _detailState.update { it.copy(castState = UiState.Error(result.message ?: "Unknown error")) }
             }
         }
     }
