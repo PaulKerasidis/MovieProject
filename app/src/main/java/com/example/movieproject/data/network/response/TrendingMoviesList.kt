@@ -1,3 +1,5 @@
+@file:OptIn(kotlinx.serialization.InternalSerializationApi::class)
+
 package com.example.movieproject.data.network.response
 
 

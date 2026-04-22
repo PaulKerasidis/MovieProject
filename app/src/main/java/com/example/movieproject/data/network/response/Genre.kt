@@ -1,5 +1,6 @@
-package com.example.movieproject.data.network.response
+@file:OptIn(kotlinx.serialization.InternalSerializationApi::class)
 
+package com.example.movieproject.data.network.response
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
