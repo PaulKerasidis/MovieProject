@@ -92,5 +92,5 @@ fun Genres(
 @Preview
 @Composable
 fun GenresPreview() {
-    Genres()
+    Genres(selectedIndex = 0, onGenreSelected = {})
 }
